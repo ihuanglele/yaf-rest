@@ -23,11 +23,13 @@ class Bootstrap extends \Yaf\Bootstrap_Abstract {
                 // 正常输出
             }else{
                 // 判断应用类型
+//                throw $e;
             }
         });
     }
 
-    public function _initPlugin(\Yaf\Dispatcher $dispatcher) {
+    public function _initView(\Yaf\Dispatcher $dispatcher){
         $dispatcher->disableView();
     }
+
 }
