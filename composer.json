@@ -1,0 +1,22 @@
+{
+    "name": "ihuanglele/yaf-rest",
+    "description": "rest framework on yaf",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "ihuanglele",
+            "email": "huanglele@yousuowei.cn"
+        }
+    ],
+    "require": {
+        "php": "^5.6|^7.0",
+        "ext-yaf": "*",
+        "ext-json": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "app\\": "app"
+        }
+    }
+}
