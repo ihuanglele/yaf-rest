@@ -3,6 +3,10 @@
     "description": "rest framework on yaf",
     "type": "project",
     "license": "MIT",
+    "keywords": [
+        "yaf",
+        "yaf-framework"
+    ],
     "authors": [
         {
             "name": "ihuanglele",
@@ -16,7 +20,7 @@
     },
     "autoload": {
         "psr-4": {
-            "app\\": "app"
+            "app\\": "application"
         }
     }
 }
