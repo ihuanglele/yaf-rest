@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * Author: 晃晃<wangchunhui@doweidu.com>
+ * Author: ihuanglele<ihuanglele@yousuowei.cn>
  * Date: 2019-01-17
  * Time: 10:50
  */
@@ -11,8 +11,6 @@ namespace fw;
 use Yaf\Plugin_Abstract;
 use Yaf\Request_Abstract;
 use Yaf\Response_Abstract;
-use function file_put_contents;
-use function var_dump;
 
 class AppPlugin extends Plugin_Abstract
 {
@@ -23,7 +21,7 @@ class AppPlugin extends Plugin_Abstract
      * @param Request_Abstract $request
      * @param Response_Abstract $response
      * @return bool|void
-     * @author 晃晃<wangchunhui@doweidu.com>
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
      * @time 2019-01-17
      */
     public function routerStartup(Request_Abstract $request, Response_Abstract $response)
@@ -37,7 +35,7 @@ class AppPlugin extends Plugin_Abstract
      * @param Request_Abstract $request
      * @param Response_Abstract $response
      * @return bool|void
-     * @author 晃晃<wangchunhui@doweidu.com>
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
      * @time 2019-01-17
      */
     public function routerShutdown(Request_Abstract $request, Response_Abstract $response)
@@ -50,7 +48,7 @@ class AppPlugin extends Plugin_Abstract
      * @param Request_Abstract $request
      * @param Response_Abstract $response
      * @return bool|void
-     * @author 晃晃<wangchunhui@doweidu.com>
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
      * @time 2019-01-17
      */
     public function dispatchLoopStartup(Request_Abstract $request, Response_Abstract $response)
@@ -64,14 +62,12 @@ class AppPlugin extends Plugin_Abstract
      * @param Request_Abstract $request
      * @param Response_Abstract $response
      * @return bool|void
-     * @author 晃晃<wangchunhui@doweidu.com>
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
      * @time 2019-01-17
      */
     public function dispatchLoopShutdown(Request_Abstract $request, Response_Abstract $response)
     {
-        $body = $response->getBody();
-        var_dump($response === Container::getResponse());
-        file_put_contents('body.txt', $body);
+
     }
 
     /**
@@ -80,7 +76,7 @@ class AppPlugin extends Plugin_Abstract
      * @param Request_Abstract $request
      * @param Response_Abstract $response
      * @return bool|void
-     * @author 晃晃<wangchunhui@doweidu.com>
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
      * @time 2019-01-17
      */
     public function preDispatch(Request_Abstract $request, Response_Abstract $response)
@@ -94,7 +90,7 @@ class AppPlugin extends Plugin_Abstract
      * @param Request_Abstract $request
      * @param Response_Abstract $response
      * @return bool|void
-     * @author 晃晃<wangchunhui@doweidu.com>
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
      * @time 2019-01-17
      */
     public function postDispatch(Request_Abstract $request, Response_Abstract $response)

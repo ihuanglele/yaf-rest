@@ -1,7 +1,7 @@
 <?php
 /**
  * Created by PhpStorm.
- * Author: 晃晃<wangchunhui@doweidu.com>
+ * Author: ihuanglele<ihuanglele@yousuowei.cn>
  * Date: 2019-01-17
  * Time: 11:37
  */
@@ -12,6 +12,8 @@ namespace fw;
 use app\exceptions\RuntimeException;
 use Yaf\Request_Abstract;
 use Yaf\Response_Abstract;
+use function is_null;
+use function is_string;
 use function key_exists;
 
 class Container
@@ -35,7 +37,7 @@ class Container
 
     /**
      * @return Request_Abstract
-     * @author 晃晃<wangchunhui@doweidu.com>
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
      * @time 2019-01-17
      */
     public static function getRequest()
@@ -45,12 +47,47 @@ class Container
 
     /**
      * @return Response_Abstract
-     * @author 晃晃<wangchunhui@doweidu.com>
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
      * @time 2019-01-17
      */
     public static function getResponse()
     {
         return self::get('response');
+    }
+
+    /**
+     * @param $name
+     * @param $default
+     * @return mixed
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
+     * @time 2019-01-18
+     */
+    public static function getConfig($name = null, $default = null)
+    {
+        $r = \Yaf\Application::app()->getConfig()->get($name);
+        if ($r) {
+            if (is_string($r)) {
+                return $r;
+            }
+
+            return $r->toArray();
+        } else {
+            if (is_null($default)) {
+                return null;
+            }
+
+            return $default;
+        }
+    }
+
+    /**
+     * @return \Yaf\Application
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
+     * @time 2019-01-18
+     */
+    public static function getApp()
+    {
+        return \Yaf\Application::app();
     }
 
 }
