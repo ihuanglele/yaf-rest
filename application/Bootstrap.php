@@ -13,6 +13,17 @@ use fw\Logger;
 
 class Bootstrap extends \Yaf\Bootstrap_Abstract {
 
+    public function _initLogger()
+    {
+        $log = Container::getConfig('log', 'fw\\logger\\File');
+        if (class_exists($log)) {
+            $logger = new $log();
+            Logger::setLogger($logger);
+        } else {
+            die("${log} is not found");
+        }
+    }
+
     /**
      * 注册插件
      * @param \Yaf\Dispatcher $dispatcher

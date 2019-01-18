@@ -4,7 +4,6 @@ namespace fw;
 
 
 use Psr\Log\LoggerInterface;
-use function class_exists;
 
 class Logger
 {
@@ -14,9 +13,9 @@ class Logger
      */
     private static $logger;
 
-    public static function setLogger()
+    public static function setLogger(LoggerInterface $logger)
     {
-
+        self::$logger = $logger;
     }
 
     private static function getLogger()
@@ -24,18 +23,7 @@ class Logger
         if (self::$logger) {
             return self::$logger;
         } else {
-            $logger       = new \Monolog\Logger('syslog');
-            $handlerName  = Container::getConfig('syslog.handler', 'FirePHPHandler');
-            $handlerClass = '\\Monolog\\Handler\\'.$handlerName;
-            if (!class_exists($handlerClass)) {
-                die("Logger handler: ${handlerName} is not exist");
-            } else {
-                $handler = new $handlerClass();
-            }
-            $logger->pushHandler($handler);
-            self::$logger = $logger;
-
-            return $logger;
+            die("Logger handler is not exist");
         }
     }
 

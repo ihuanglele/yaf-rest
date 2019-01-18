@@ -1,4 +1,7 @@
 <?php
+
+use fw\Logger;
+
 /**
  * Created by PhpStorm.
  * Author: ihuanglele<ihuanglele@yousuowei.cn>
@@ -10,7 +13,7 @@ class IndexController extends BaseController
 {
 
     public function indexAction(){
-        $loader = \Yaf\Loader::getInstance();
+        Logger::info('nihao', ['nisfal']);
 
         //        $this->success('success');
     }
