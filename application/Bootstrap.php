@@ -13,15 +13,17 @@ use fw\Logger;
 
 class Bootstrap extends \Yaf\Bootstrap_Abstract {
 
-    public function _initLogger()
+    public function _initApp()
     {
-        $log = Container::getConfig('log', 'fw\\logger\\File');
-        if (class_exists($log)) {
-            $logger = new $log();
-            Logger::setLogger($logger);
-        } else {
-            die("${log} is not found");
-        }
+        $log    = Container::getConfig('log', 'fw\\logger\\File');
+        $logger = Logger::setLogger($log);
+        Container::set(Container::SYSLOG, $logger);
+        register_shutdown_function(function()
+        {
+            Container::getLogger()->write();
+        });
+        set_error_handler(['fw\\ErrorHandle', 'appError']);
+        set_exception_handler(['fw\\ErrorHandle', 'appException']);
     }
 
     /**
@@ -46,11 +48,11 @@ class Bootstrap extends \Yaf\Bootstrap_Abstract {
                     if ($obj instanceof \Yaf\Plugin_Abstract) {
                         $dispatcher->registerPlugin(new $obj);
                     } else {
-                        Logger::info("plugin ${plugin} should be \Yaf\Plugin_Abstract");
+                        Container::getLogger()->info("plugin ${plugin} should be \Yaf\Plugin_Abstract");
                         $obj = null;
                     }
                 } else {
-                    Logger::info("plugin ${plugin} is not exist");
+                    Container::getLogger()->info("plugin ${plugin} is not exist");
                 }
             }
         }

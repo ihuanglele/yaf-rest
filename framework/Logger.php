@@ -3,74 +3,197 @@
 namespace fw;
 
 
-use Psr\Log\LoggerInterface;
+use Psr\Log\LoggerInterface as LoggerInterface;
+use function class_exists;
+use function is_string;
 
-class Logger
+class Logger implements LoggerInterface
 {
 
     /**
-     * @var LoggerInterface
+     * @var Logger
      */
-    private static $logger;
+    private $logger;
 
-    public static function setLogger(LoggerInterface $logger)
+    /**
+     * 初始化 logger
+     * @param string|Logger $logger
+     * @return Logger
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
+     * @time 2019-01-21
+     */
+    public static function setLogger($logger = null)
     {
-        self::$logger = $logger;
+        if (empty($logger)) {
+            $logger = 'File';
+        }
+        if (is_string($logger)) {
+            if (false === strpos($logger, '\\')) {
+                $logger = 'fw\\logger\\'.$logger;
+            }
+            if (class_exists($logger)) {
+                $obj = new $logger();
+                if ($obj instanceof Logger) {
+                    $log         = new self();
+                    $log->logger = $obj;
+
+                    return $log;
+                }
+            } else {
+                die("logger drive ${logger} is not found");
+            }
+        } elseif ($logger instanceof Logger) {
+            $log         = new self();
+            $log->logger = $logger;
+
+            return $log;
+        } else {
+            die('logger init error');
+        }
+
     }
 
-    private static function getLogger()
+    private function __construct()
     {
-        if (self::$logger) {
-            return self::$logger;
-        } else {
-            die("Logger handler is not exist");
-        }
     }
 
     /**
-     * @param $msg
-     * @param $data
-     * @author ihuanglele<ihuanglele@yousuowei.cn>
-     * @time 2019-01-18
+     * Logs with an arbitrary level.
+     *
+     * @param mixed $level
+     * @param string $message
+     * @param array $context
+     *
+     * @return void
      */
-    public static function info($msg, $data = [])
+    public function log($level, $message, array $context = [])
     {
-        self::getLogger()->info($msg, $data);
+        // TODO: Implement log() method.
+        $this->logger->log($level, $message, $context);
     }
 
-    public static function error($message, $context = [])
+    /**
+     * System is unusable.
+     *
+     * @param string $message
+     * @param array $context
+     *
+     * @return void
+     */
+    public function emergency($message, array $context = [])
     {
-        self::getLogger()->error($message, $context);
+        $this->logger->log('emergency', $message, $context);
     }
 
-    public static function emergency($message, $context = [])
+    /**
+     * Action must be taken immediately.
+     *
+     * Example: Entire website down, database unavailable, etc. This should
+     * trigger the SMS alerts and wake you up.
+     *
+     * @param string $message
+     * @param array $context
+     *
+     * @return void
+     */
+    public function alert($message, array $context = [])
     {
-        self::getLogger()->emergency($message, $context);
+        $this->logger->log('alert', $message, $context);
     }
 
-    public static function debug($message, $context = [])
+    /**
+     * Critical conditions.
+     *
+     * Example: Application component unavailable, unexpected exception.
+     *
+     * @param string $message
+     * @param array $context
+     *
+     * @return void
+     */
+    public function critical($message, array $context = [])
     {
-        self::getLogger()->debug($message, $context);
+        $this->logger->log('critical', $message, $context);
     }
 
-    public static function notice($message, $context = [])
+    /**
+     * Runtime errors that do not require immediate action but should typically
+     * be logged and monitored.
+     *
+     * @param string $message
+     * @param array $context
+     *
+     * @return void
+     */
+    public function error($message, array $context = [])
     {
-        self::getLogger()->notice($message, $context);
+        $this->logger->log('error', $message, $context);
     }
 
-    public static function warning($message, $context = [])
+    /**
+     * Exceptional occurrences that are not errors.
+     *
+     * Example: Use of deprecated APIs, poor use of an API, undesirable things
+     * that are not necessarily wrong.
+     *
+     * @param string $message
+     * @param array $context
+     *
+     * @return void
+     */
+    public function warning($message, array $context = [])
     {
-        self::getLogger()->warning($message, $context);
+        $this->logger->log('warning', $message, $context);
     }
 
-    public static function critical($message, $context = [])
+    /**
+     * Normal but significant events.
+     *
+     * @param string $message
+     * @param array $context
+     *
+     * @return void
+     */
+    public function notice($message, array $context = [])
     {
-        self::getLogger()->critical($message, $context);
+        $this->logger->log('notice', $message, $context);
     }
 
-    public static function alert($message, $context = [])
+    /**
+     * Interesting events.
+     *
+     * Example: User logs in, SQL logs.
+     *
+     * @param string $message
+     * @param array $context
+     *
+     * @return void
+     */
+    public function info($message, array $context = [])
     {
-        self::getLogger()->alert($message, $context);
+        $this->logger->log('info', $message, $context);
     }
 
+    /**
+     * Detailed debug information.
+     *
+     * @param string $message
+     * @param array $context
+     *
+     * @return void
+     */
+    public function debug($message, array $context = [])
+    {
+        $this->logger->log('debug', $message, $context);
+    }
+
+    /**
+     * 日志写入
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
+     * @time 2019-01-21
+     */
+    public function write()
+    {
+        $this->logger->write();
+    }
 }

@@ -19,6 +19,8 @@ use function key_exists;
 class Container
 {
 
+    const SYSLOG = 'syslog';
+
     private static $instances = [];
 
     public static function set($mark, $obj)
@@ -88,6 +90,17 @@ class Container
     public static function getApp()
     {
         return \Yaf\Application::app();
+    }
+
+    /**
+     * 获取日志记录对象
+     * @return Logger
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
+     * @time 2019-01-21
+     */
+    public static function getLogger()
+    {
+        return self::get(self::SYSLOG);
     }
 
 }

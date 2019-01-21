@@ -9,25 +9,23 @@
 namespace fw\logger;
 
 
+use fw\Logger;
 use function date;
 use function file_put_contents;
 use function json_encode;
-use function key_exists;
 use const DIRECTORY_SEPARATOR;
+use const FILE_APPEND;
 use const JSON_UNESCAPED_UNICODE;
 
-class File extends \Psr\Log\AbstractLogger
+class File extends Logger
 {
 
     protected $path = '';
 
-    public function __construct($config = [])
-    {
-        if (key_exists('path', $config)) {
+    private static $logs = [];
 
-        } else {
-            //            $this->path = APPLICATION_PATH.'runtime'.DIRECTORY_SEPARATOR.date('Y-m-d').'.log';
-        }
+    public function __construct()
+    {
         $this->path = APPLICATION_PATH.DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.date('Y-m-d').'.log';
     }
 
@@ -42,9 +40,16 @@ class File extends \Psr\Log\AbstractLogger
      */
     public function log($level, $message, array $context = [])
     {
-        // TODO: Implement log() method.
-        file_put_contents($this->path,
-                          json_encode([$level => ['msg' => $message, 'data' => $context]], JSON_UNESCAPED_UNICODE).
-                          "\r\n");
+        if (empty($context)) {
+            static::$logs[ $level ][] = $message;
+        } else {
+            static::$logs[ $level ][ $message ] = $context;
+        }
+    }
+
+    public function write()
+    {
+        file_put_contents($this->path, json_encode(static::$logs, JSON_UNESCAPED_UNICODE)."\r\n", FILE_APPEND);
+        static::$logs = [];
     }
 }

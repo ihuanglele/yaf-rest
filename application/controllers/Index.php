@@ -1,6 +1,6 @@
 <?php
 
-use fw\Logger;
+use fw\Container;
 
 /**
  * Created by PhpStorm.
@@ -13,13 +13,11 @@ class IndexController extends BaseController
 {
 
     public function indexAction(){
-        Logger::info('nihao', ['nisfal']);
-
-        //        $this->success('success');
+        Container::getLogger()->info('test', ['ok' => time()]);
     }
 
     public function errorAction(){
-        throw new \Yaf\Exception();
+        throw new \Yaf\Exception('on');
     }
 
     public function emptyAction()
