@@ -36,8 +36,8 @@ class ErrorHandle
         $res = new \Yaf\Response\Http();
         $res->setBody(json_encode([
                                       'code'  => 0,
-                                      'error' => 'sys error',
-                                      'trace' => $errstr,
+                                      'msg'   => 'sys error',
+                                      'error' => $errstr,
                                   ]));
         $res->response();
     }
@@ -61,8 +61,8 @@ class ErrorHandle
         $res = new \Yaf\Response\Http();
         $res->setBody(json_encode([
                                       'code'  => 0,
-                                      'error' => 'sys error',
-                                      'trace' => $e->getMessage(),
+                                      'msg'   => 'sys error',
+                                      'error' => $e->getMessage(),
                                   ]));
         $res->response();
     }
