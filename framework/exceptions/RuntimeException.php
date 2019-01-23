@@ -6,7 +6,7 @@
  * Time: 13:53
  */
 
-namespace app\exceptions;
+namespace fw\exceptions;
 
 
 use Throwable;

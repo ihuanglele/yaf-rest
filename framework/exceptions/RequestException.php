@@ -6,7 +6,7 @@
  * Time: 15:44
  */
 
-namespace app\exceptions;
+namespace fw\exceptions;
 
 
 class RequestException extends \Yaf\Exception
