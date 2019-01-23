@@ -14,6 +14,16 @@ use const JSON_UNESCAPED_UNICODE;
 class BaseController extends \Yaf\Controller_Abstract
 {
 
+    public function init()
+    {
+        // add Header
+        $this->getResponse()->setHeader('Content-Type', 'application/json;charset=utf-8');
+        $this->getResponse()->setHeader('Server', 'apache/1.8.0');
+        $this->getResponse()->setHeader('X-Powered-By', 'PHP');
+        $this->getResponse()->setHeader('Access-Control-Allow-Origin', '*');
+        $this->getResponse()->setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST');
+    }
+
     /**
      * 成功返回
      * @param string|array $data
