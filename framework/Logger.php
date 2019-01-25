@@ -50,7 +50,6 @@ class Logger implements LoggerInterface
         } else {
             die('logger init error');
         }
-
     }
 
     private function __construct()
