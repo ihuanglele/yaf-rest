@@ -1,6 +1,7 @@
 <?php
 
 use fw\AppPlugin;
+use fw\Cache;
 use fw\Container;
 use fw\Logger;
 
@@ -18,6 +19,9 @@ class Bootstrap extends \Yaf\Bootstrap_Abstract {
         $log    = Container::getConfig('log', 'fw\\logger\\File');
         $logger = Logger::setLogger($log);
         Container::set(Container::SYSLOG, $logger);
+        $cache    = Container::getConfig('cache');
+        $cacheIns = Cache::setDriver($cache);
+        Container::set(Container::SYSCACHE, $cacheIns);
         register_shutdown_function(function()
         {
             Container::getLogger()->write();

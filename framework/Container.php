@@ -19,7 +19,8 @@ use function key_exists;
 class Container
 {
 
-    const SYSLOG = 'syslog';
+    const SYSLOG   = 'syslog';
+    const SYSCACHE = 'syscache';
 
     private static $instances = [];
 
@@ -101,6 +102,17 @@ class Container
     public static function getLogger()
     {
         return self::get(self::SYSLOG);
+    }
+
+    /**
+     * 获取缓存实例
+     * @return Cache
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
+     * @time 2019-01-25
+     */
+    public static function getCache()
+    {
+        return self::get(self::SYSCACHE);
     }
 
 }

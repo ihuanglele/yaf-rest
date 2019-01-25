@@ -47,9 +47,16 @@ class File extends Logger
         }
     }
 
+    /**
+     * 写入缓存
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
+     * @time 2019-01-25
+     */
     public function write()
     {
-        file_put_contents($this->path, json_encode(static::$logs, JSON_UNESCAPED_UNICODE)."\r\n", FILE_APPEND);
-        static::$logs = [];
+        if (!empty(static::$logs)) {
+            file_put_contents($this->path, json_encode(static::$logs, JSON_UNESCAPED_UNICODE)."\r\n", FILE_APPEND);
+            static::$logs = [];
+        }
     }
 }
