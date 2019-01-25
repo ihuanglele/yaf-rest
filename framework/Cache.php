@@ -52,12 +52,13 @@ class Cache
      * @param $key
      * @param $value
      * @param int $expire 过期时间
+     * @return mixed
      * @author 晃晃<wangchunhui@doweidu.com>
      * @time 2019-01-25
      */
     public function set($key, $value, $expire)
     {
-        $this->driver->set($key, $value, $expire);
+        return $this->driver->set($key, $value, $expire);
     }
 
     /**
@@ -68,7 +69,7 @@ class Cache
      */
     public function get($key)
     {
-        $this->driver->get($key);
+        return $this->driver->get($key);
     }
 
     /**

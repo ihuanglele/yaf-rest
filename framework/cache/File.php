@@ -40,9 +40,8 @@ class File extends Cache
             return null;
         }
         $arr = unserialize($c);
-        if ($arr['expire'] && $arr['expire'] < time()) {
+        if ($arr['expire'] && $arr['expire'] && $arr['expire'] < time()) {
             unlink($this->path.$key);
-
             return null;
         }
 
