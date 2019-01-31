@@ -19,14 +19,16 @@ class Bootstrap extends \Yaf\Bootstrap_Abstract {
         $t_start = microtime(true);
         $log     = Container::getConfig('log', 'fw\\logger\\File');
         $logger  = Logger::setLogger($log);
+        // 注册日志实例
         Container::set(Container::SYSLOG, $logger);
         $cache    = Container::getConfig('cache');
         $cacheIns = Cache::setDriver($cache);
+        // 注册缓存实例
         Container::set(Container::SYSCACHE, $cacheIns);
         register_shutdown_function(function() use ($t_start)
         {
             $t_end     = microtime(true);
-            $mem_usage = memory_get_usage(true);
+            $mem_usage = memory_get_usage();
             if ($mem_usage < 1024) {
                 $mem_usage .= " bytes";
             } elseif ($mem_usage < 1048576) {
@@ -43,6 +45,40 @@ class Bootstrap extends \Yaf\Bootstrap_Abstract {
         });
         set_error_handler(['fw\\ErrorHandle', 'appError']);
         set_exception_handler(['fw\\ErrorHandle', 'appException']);
+    }
+
+    /**
+     * 注册自定义配置
+     * @author ihuanglele<huanglele@yousuowei.cn>
+     */
+    public function _initConfig()
+    {
+        $files = Container::getConfig('configurations', []);
+        if (empty($files)) {
+            return;
+        }
+        if (is_string($files)) {
+            $files = explode(',', $files);
+        }
+        $arr = [];
+        foreach ($files as $file) {
+            // 判断文件是否存在
+            if (is_file(APPLICATION_PATH.'/conf/'.$file)) {
+                // 判断文件类型
+                $type = substr($file, -3);
+                $t    = [];
+                if ('php' === $type) {
+                    $t = include(APPLICATION_PATH.'/conf/'.$file);
+                } elseif ('ini' === $type) {
+                    $t = parse_ini_file(APPLICATION_PATH.'/conf/'.$file, true);
+                }
+                if (is_array($t)) {
+                    $key         = substr($file, 0, -4);
+                    $arr[ $key ] = $t;
+                }
+            }
+        }
+        Container::set(Container::SYSCONF, $arr);
     }
 
     /**

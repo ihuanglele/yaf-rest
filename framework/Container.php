@@ -12,6 +12,7 @@ namespace fw;
 use fw\exceptions\RuntimeException;
 use Yaf\Request_Abstract;
 use Yaf\Response_Abstract;
+use function explode;
 use function is_null;
 use function is_string;
 use function key_exists;
@@ -21,6 +22,7 @@ class Container
 
     const SYSLOG   = 'syslog';
     const SYSCACHE = 'syscache';
+    const SYSCONF  = 'sysconf';
 
     private static $instances = [];
 
@@ -59,6 +61,7 @@ class Container
     }
 
     /**
+     * 获取 application.ini 里面的核心配置
      * @param $name
      * @param $default
      * @return mixed
@@ -113,6 +116,33 @@ class Container
     public static function getCache()
     {
         return self::get(self::SYSCACHE);
+    }
+
+    /**
+     * 获取用户配置
+     * @param string $key
+     * @param null $default
+     * @return mixed
+     * @author ihuanglele<huanglele@yousuowei.cn>
+     */
+    public static function getConf($key = '', $default = null)
+    {
+        $arr = self::get(self::SYSCONF);
+        if (empty($key)) {
+            return $arr;
+        }
+        $path = explode('#', $key);
+        foreach ($path as $p) {
+            if (key_exists($p, $arr)) {
+                $arr     = $arr[ $p ];
+                $default = $arr;
+            } else {
+                $default = null;
+                break;
+            }
+        }
+
+        return $default;
     }
 
 }
