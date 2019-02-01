@@ -3,28 +3,24 @@ default = 'mysql'
 ; more config see https://medoo.in/api/new
 [mysql]
 ;  required
-database_type  = 'mysql'
-database_name  = 'ys'
-server         = '111.231.100.181'
-username       = 'ihuanglele'
-password       = 'Txwz2018!'
+database_type  = ''
+database_name  = ''
+server         = ''
+username       = ''
+password       = ''
 
 ;// [optional]
-charset        = 'utf8mb4'
-collation      = 'utf8mb4_general_ci'
-port           = '3306'
+charset        = ''
+collation      = ''
+port           = ''
 
-;// [optional] Table prefix
-prefix         = ''
+;// Table prefix
+prefix = ''
+
+; Medoo will execute those commands after connected to the database for initialization
+;command[] = SET SQL_MODE=ANSI_QUOTES
 
 [mongo]
-charset = ""
-host = ""
-db = ""
-username = ""
-password = ""
-port = ""
 
-; redis 配置
-redis.host = ok
-redis.port = 12306
+
+[redis]
