@@ -4,6 +4,7 @@ use fw\AppPlugin;
 use fw\Cache;
 use fw\Container;
 use fw\Logger;
+use fw\Request;
 
 /**
  * Created by PhpStorm.
@@ -16,6 +17,7 @@ class Bootstrap extends \Yaf\Bootstrap_Abstract {
 
     public function _initApp()
     {
+        Container::getApp()->getDispatcher()->setRequest(new Request());
         $t_start = microtime(true);
         $log     = Container::getConfig('log', 'fw\\logger\\File');
         $logger  = Logger::setLogger($log);
