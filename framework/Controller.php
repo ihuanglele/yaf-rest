@@ -22,6 +22,7 @@ class Controller extends \Yaf\Controller_Abstract
         $this->getResponse()->setHeader('X-Powered-By', 'YafRest');
         $this->getResponse()->setHeader('Access-Control-Allow-Origin', '*');
         $this->getResponse()->setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST,HEAD,DELETE');
+        $this->getResponse()->setHeader('Access-Control-Allow-Credentials', 'true');
     }
 
     /**
