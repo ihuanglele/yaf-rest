@@ -4,8 +4,9 @@
     "type": "project",
     "license": "MIT",
     "keywords": [
-        "yaf",
-        "yaf-framework"
+        "Yaf",
+        "Yaf-framework",
+        "RestApi"
     ],
     "authors": [
         {

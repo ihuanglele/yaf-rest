@@ -1,6 +1,6 @@
 ### yaf-rest
 
-> 基于 yaf 封装的 restapi 框架
+> 基于 yaf 封装的 RestAPI 框架
 
 
 ##### Yaf 配置
