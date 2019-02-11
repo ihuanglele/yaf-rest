@@ -8,7 +8,7 @@
 
 namespace fw;
 
-use fw\exceptions\RuntimeException;
+use fw\exception\RuntimeException;
 use Medoo\Medoo;
 use function defined;
 use function in_array;

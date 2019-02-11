@@ -6,7 +6,7 @@
  * Time: 14:44
  */
 
-namespace fw\exceptions;
+namespace fw\exception;
 
 
 abstract class ErrorHandleException extends \Yaf\Exception

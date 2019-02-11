@@ -6,7 +6,7 @@
  * Time: 13:53
  */
 
-namespace fw\exceptions;
+namespace fw\exception;
 
 
 use Throwable;

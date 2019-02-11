@@ -9,7 +9,7 @@
 namespace fw;
 
 
-use fw\exceptions\RuntimeException;
+use fw\exception\RuntimeException;
 use Yaf\Request_Abstract;
 use Yaf\Response_Abstract;
 use function explode;
