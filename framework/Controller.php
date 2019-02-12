@@ -36,31 +36,29 @@ class Controller extends \Yaf\Controller_Abstract
     }
 
     /**
-     * getParam
-     * @param $name
-     * @param null $default
+     * 获取 get 参数
+     * @param string|null $name
+     * @param mixed $default
      * @return mixed
      * @author ihuanglele<huanglele@yousuowei.cn>
      * @time 2019-01-21
      */
-    protected function getParam($name = null, $default = null)
+    protected function get($name = null, $default = null)
     {
-        if (null === $name) {
-            return $this->getRequest()->getParams();
-        } else {
-            return $this->getRequest()->getQuery($name, $default);
-        }
+        return $this->getRequest()->get($name, $default);
     }
 
     /**
-     * getParams
-     * @return array
-     * @author ihuanglele<huanglele@yousuowei.cn>
-     * @time 2019-01-21
+     * 获取 post 参数
+     * @param string|null $name
+     * @param mixed $default
+     * @return mixed
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
+     * @time 2019-02-12
      */
-    protected function getParams()
+    protected function post($name = null, $default = null)
     {
-        return $this->getRequest()->getParams();
+        return $this->getRequest()->post($name, $default);
     }
 
     /**

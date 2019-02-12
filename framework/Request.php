@@ -98,4 +98,17 @@ class Request extends \Yaf\Request\Http
         }
     }
 
+    public function post($name = null, $default = null)
+    {
+        if (null === $name) {
+            return $_POST;
+        } else {
+            if (key_exists($name, $_POST)) {
+                return $_POST[ $name ];
+            } else {
+                return $default;
+            }
+        }
+    }
+
 }
