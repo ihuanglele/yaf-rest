@@ -17,6 +17,8 @@ use function implode;
 use function key_exists;
 use function ltrim;
 use function parse_str;
+use function strpos;
+use function strstr;
 use function ucfirst;
 
 class Request extends \Yaf\Request\Http
@@ -36,6 +38,7 @@ class Request extends \Yaf\Request\Http
 
     /**
      * 处理 uri 参数
+     * 在 AppPlugin 中 routerShutdown 事件触发时自动调用
      * @author ihuanglele<ihuanglele@yousuowei.cn>
      * @time 2019-02-11
      */
@@ -45,7 +48,14 @@ class Request extends \Yaf\Request\Http
             return;
         }
         if ($this->routed) {
-            list($uri, $param) = explode('?', $_SERVER['REQUEST_URI']);
+            $uri   = $param = '';
+            $param = strstr($_SERVER['REQUEST_URI'], '?');
+            if (false === strpos($_SERVER['REQUEST_URI'], '?')) {
+                $uri = $_SERVER['REQUEST_URI'];
+            } else {
+                // 包含 ？   通过第一个问好分隔
+                list($uri, $param) = explode('?', $_SERVER['REQUEST_URI'], 2);
+            }
             $uri = ucfirst(ltrim($uri, '/'));
             $uri = ucfirst(preg_replace('/^'.$this->getModuleName().'\//', '', $uri));     //  去掉 module
             $uri = lcfirst(preg_replace('/^'.$this->getControllerName().'\//', '', $uri));     //  去掉 controller
@@ -69,9 +79,15 @@ class Request extends \Yaf\Request\Http
         }
     }
 
+    /**
+     * @param string $name 键
+     * @param mixed $default 默认值
+     * @return array|mixed|null
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
+     * @time 2019-02-12
+     */
     public function get($name = null, $default = null)
     {
-        $this->init();
         if (null === $name) {
             return $this->_get;
         }

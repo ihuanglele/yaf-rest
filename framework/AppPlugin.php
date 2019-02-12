@@ -40,7 +40,9 @@ class AppPlugin extends Plugin_Abstract
      */
     public function routerShutdown(Request_Abstract $request, Response_Abstract $response)
     {
-
+        if ($request instanceof Request) {
+            $request->init();
+        }
     }
 
     /**

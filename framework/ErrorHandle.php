@@ -33,13 +33,6 @@ class ErrorHandle
                                           'errfile' => $errfile,
                                           'errline' => $errline,
                                       ]);
-        //        $res = new \Yaf\Response\Http();
-        Container::getLogger()->error('sys error',
-                                      [
-                                          'code'  => 0,
-                                          'msg'   => 'sys error',
-                                          'error' => $errstr,
-                                      ]);
     }
 
     /**
