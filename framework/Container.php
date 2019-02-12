@@ -10,7 +10,6 @@ namespace fw;
 
 
 use fw\exception\RuntimeException;
-use Yaf\Request_Abstract;
 use Yaf\Response_Abstract;
 use function explode;
 use function is_null;
@@ -41,7 +40,7 @@ class Container
     }
 
     /**
-     * @return Request_Abstract
+     * @return Request
      * @author ihuanglele<ihuanglele@yousuowei.cn>
      * @time 2019-01-17
      */

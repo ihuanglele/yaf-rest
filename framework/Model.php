@@ -9,12 +9,14 @@
 namespace fw;
 
 use fw\exception\RuntimeException;
+use function json_decode;
 use Medoo\Medoo;
 use function defined;
 use function in_array;
 use function key_exists;
 use function method_exists;
 use function str_replace;
+use function var_dump;
 
 /**
  * Class Model
@@ -38,6 +40,34 @@ class Model
 {
     // 表名
     const TABLE = '';
+    
+    private $dataListSearchFields = [
+        'example' => [          // get 字段
+            'field'     => '',      // 数据库映射字段 缺省为键值
+            'default'   => '',      // 参数过滤默认值 缺省为空
+            'filter'    => '',      // 参数过滤方式 缺省为 if 判断
+            'condition' => '$field',    // 触发搜索的表达式  $field 会被替换为参数过滤后的值
+            'op'        => '=',         // 搜索方式
+            'exp'       => '',          // 搜索表达式值 缺省为过滤后的值
+        ],
+        'cat_id' => [
+            'default'   => -1,
+            'condition' => 'exp($field >= 0)',
+            'op'        => '=',
+            'exp'       => '$field',
+        ],
+        'is_checked' => 'number',   // 匹配数字，同cat_id
+        'status' => [
+            'default'   => -1,
+            'filter'    => 'intval',
+            'condition' => 'exp(in_array($field,[0,1]))',
+            'op'        => '=',
+            'exp'       => '$field',
+        ],
+        'id',       //全部默认
+        'name' => 'like',   //like 匹配
+    ];
+
 
     // 数据库实例数组 键值为实例类型
     private static $instances = [];
@@ -104,6 +134,24 @@ class Model
         } else {
             throw new RuntimeException('Function '.$name.' is not found');
         }
+    }
+
+    public function autoFillWhere($filter){
+        $where = [];
+        $search = json_decode(Container::getRequest()->get('search','{}'),true);
+
+        foreach ($filter as $filter){
+
+        }
+
+        $page = Container::getRequest()->get('page');
+        $order = Container::getRequest()->get('order');
+
+        return [$search,$page,$order];
+    }
+
+    public function autoDataList($filter){
+        $where = $this->autoFillWhere($filter);
     }
 
     /**
