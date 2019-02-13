@@ -9,14 +9,19 @@
 namespace fw;
 
 use fw\exception\RuntimeException;
-use function json_decode;
 use Medoo\Medoo;
 use function defined;
+use function explode;
+use function function_exists;
 use function in_array;
+use function is_array;
+use function is_numeric;
+use function is_string;
+use function json_decode;
 use function key_exists;
 use function method_exists;
+use function preg_match;
 use function str_replace;
-use function var_dump;
 
 /**
  * Class Model
@@ -40,19 +45,38 @@ class Model
 {
     // 表名
     const TABLE = '';
-    
+
     private $dataListSearchFields = [
-        'example' => [          // get 字段
-            'field'     => '',      // 数据库映射字段 缺省为键值
-            'default'   => '',      // 参数过滤默认值 缺省为空
-            'filter'    => '',      // 参数过滤方式 缺省为 if 判断
-            'condition' => '$field',    // 触发搜索的表达式  $field 会被替换为参数过滤后的值
-            'op'        => '=',         // 搜索方式
-            'exp'       => '',          // 搜索表达式值 缺省为过滤后的值
+        // get 字段
+        'example'    => [
+            // 数据库映射字段 缺省为 get 字段
+            'field'     => '',
+            // 默认 value 值：没有获取到get值时，取default值；缺省为空
+            'default'   => '',
+            /**
+             * 对get值 进行过滤
+             * 自定义、内置函数 $value = fun($value)
+             */
+            'filter'    => '',
+            /**
+             * 触发搜索的表达式
+             *  默认直接 if 判断 field 过滤之后的值
+             *  #exp($field > 1)  包裹表达式 $field 会被替换为参数过滤后的值 $value
+             *  内置、自定义函数 fun($value)  判断返回值
+             *  closure 闭包函数 判断返回值 function($key,$field,$value)
+             */
+            'condition' => '',
+            // 搜索方式
+            'op'        => '',
+            /**
+             * 搜索表达式值
+             * 缺省为过滤后的值  支持： #exp 表达式、闭包函数、自定义函数、内置函数
+             */
+            'exp'       => '',
         ],
         'cat_id' => [
             'default'   => -1,
-            'condition' => 'exp($field >= 0)',
+            'condition' => '#exp($field >= 0)',
             'op'        => '=',
             'exp'       => '$field',
         ],
@@ -60,13 +84,46 @@ class Model
         'status' => [
             'default'   => -1,
             'filter'    => 'intval',
-            'condition' => 'exp(in_array($field,[0,1]))',
+            'condition' => '#exp(in_array($field,[0,1]))',
             'op'        => '=',
             'exp'       => '$field',
         ],
         'id',       //全部默认
         'name' => 'like',   //like 匹配
     ];
+
+    private static $allowOpExpMapping = [
+        '~',
+        '>',
+        '>=',
+        '<',
+        '<=',
+        '!=',
+        'in' => 'self::expToArray',
+        '<>' => 'self::expToArray',
+    ];
+
+    private static $allowOps = [
+        '~',
+        '>',
+        '>=',
+        '<',
+        '<=',
+        '!=',
+        'in',
+        '<>',
+    ];
+
+    private static function expToArray($key, $field, $v)
+    {
+        if (is_array($v)) {
+            return $v;
+        } elseif (is_string($v)) {
+            return explode(',', $v);
+        } else {
+            return null;
+        }
+    }
 
 
     // 数据库实例数组 键值为实例类型
@@ -136,22 +193,147 @@ class Model
         }
     }
 
-    public function autoFillWhere($filter){
+    public function autoFillWhere($filters)
+    {
         $where = [];
         $search = json_decode(Container::getRequest()->get('search','{}'),true);
 
-        foreach ($filter as $filter){
+        foreach ($filters as $k => $filter) {
+            $r = $this->completeFilter($k, $filter);
+            if (!$r) {
+                continue;
+            }
+            list($key, $filter) = $r;
+            if (key_exists($key, $search)) {
+                $value = $search[ $key ];
+            } else {
+                $value = $filter['default'];
+            }
 
+            // 过滤参数
+            if ($filter['filter'] && function_exists($filter['filter'])) {
+                $value = $filter['filter']($value);
+            }
+
+            // 判断是否满足条件
+            $condition = $filter['condition'];
+            if ('' === $condition) {
+                $condition = $value;
+            } elseif (function_exists($condition)) {      // 函数
+                $condition = $condition($value);
+            } elseif (preg_match('/^#exp\((.*?)\)$/', $condition, $cc)) { // exp 表达式
+                $condition = str_replace('$field', $value, $cc[1]);
+                unset($cc);
+                eval("\$condition = $condition;");
+            } elseif ($condition instanceof closure) {    // 闭包函数
+                $condition = $filter['condition']($key, $filter['field'], $value);
+            }
+            if (!$condition) {    // 不满足搜索条件
+                continue;
+            }
+
+            // 计算搜索值
+            $exp = $value;
+            if (function_exists($filter['exp'])) {
+                $exp = $filter['exp']($value);
+            } elseif (preg_match('/^#exp\((.*?)\)$/', $filter['exp'], $ee)) { // exp 表达式
+                $exp = str_replace('$field', $exp, $ee[1]);
+                unset($ee);
+                eval("\$exp = $exp;");
+            } elseif ($filter['exp'] instanceof closure) {    // 闭包函数
+                $exp = $filter['exp']($key, $filter['field'], $exp);
+            }
+            // 赋值
+            if ($filter['op']) {
+                $where[ $filter['field'].'['.$filter['op'].']' ] = $exp;
+            } else {
+                $where[ $filter['field'] ] = $exp;
+            }
         }
 
-        $page = Container::getRequest()->get('page');
-        $order = Container::getRequest()->get('order');
+        //        $page = Container::getRequest()->get('page');
+        //        $order = Container::getRequest()->get('order');
 
-        return [$search,$page,$order];
+        return $where;
     }
 
-    public function autoDataList($filter){
-        $where = $this->autoFillWhere($filter);
+    private function completeFilter($k, $v)
+    {
+        $key = '';
+        $arr = [];
+        if (is_numeric($k)) {
+            // 索引数组
+            if (is_string($v)) {
+                $key          = $v;
+                $arr['field'] = $v;
+            } elseif (is_array($v)) {
+                if (key_exists('field', $v)) {
+                    $key = $v['field'];
+                }
+            }
+        } else {
+            $key = $k;
+            // 关联数组
+            if (is_string($v)) {
+                if (in_array($v, self::$allowOpExpMapping)) {
+                    $arr = [
+                        'field' => $key,
+                        'op'    => $v,
+                    ];
+                } elseif (key_exists($v, self::$allowOpExpMapping)) {
+                    $arr = [
+                        'field' => $key,
+                        'op'    => $v,
+                        'exp'   => self::$allowOpExpMapping[ $key ],
+                    ];
+                } elseif ('+int' === $v) {
+                    $arr = [
+                        'field'     => $key,
+                        'condition' => function($key, $field, $v)
+                        {
+                            return preg_match('/^\d$/', $v);
+                        },
+                        'default'   => '-1',
+                    ];
+                } elseif ('number' === $v) {
+                    $arr = [
+                        'field'     => $key,
+                        'condition' => function($key, $field, $v)
+                        {
+                            return is_numeric($v);
+                        },
+                    ];
+                }
+            } elseif (is_array($v)) {
+                $arr = $v;
+            } else {
+                return false;
+            }
+        }
+        if (empty($arr['field']))
+            $arr['field'] = $key;
+        if (!isset($arr['default']))
+            $arr['default'] = '';
+        if (!isset($arr['filter']))
+            $arr['filter'] = '';
+        if (!isset($arr['condition']))
+            $arr['condition'] = '';
+        if (!isset($arr['op']) || !in_array($arr['op'], self::$allowOps)) {
+            $arr['op'] = '';
+        }
+        if (!isset($arr['exp']))
+            $arr['exp'] = '';
+
+        return [$key, $arr];
+    }
+
+
+    public function autoDataList($cols, $filters)
+    {
+        $where = $this->autoFillWhere($filters);
+        $list  = $this->select($cols, $where);
+
+        return $list;
     }
 
     /**
