@@ -15,6 +15,7 @@ use function explode;
 use function function_exists;
 use function in_array;
 use function is_array;
+use function is_callable;
 use function is_numeric;
 use function is_string;
 use function json_decode;
@@ -92,15 +93,15 @@ class Model
         'name' => 'like',   //like 匹配
     ];
 
-    private static $allowOpExpMapping = [
+    public static $allowOpExpMapping = [
         '~',
         '>',
         '>=',
         '<',
         '<=',
         '!=',
-        'in' => 'self::expToArray',
-        '<>' => 'self::expToArray',
+        'in' => __CLASS__.'::expToArray',
+        '<>' => __CLASS__.'::expToArray',
     ];
 
     private static $allowOps = [
@@ -114,12 +115,12 @@ class Model
         '<>',
     ];
 
-    private static function expToArray($key, $field, $v)
+    private static function expToArray($v, $delimiter = ',')
     {
         if (is_array($v)) {
             return $v;
         } elseif (is_string($v)) {
-            return explode(',', $v);
+            return explode($delimiter, $v);
         } else {
             return null;
         }
@@ -219,8 +220,9 @@ class Model
             $condition = $filter['condition'];
             if ('' === $condition) {
                 $condition = $value;
-            } elseif (function_exists($condition)) {      // 函数
-                $condition = $condition($value);
+            } elseif (is_callable($condition, false, $callable_name)) {      // 函数
+                $condition = $callable_name($value);
+                unset($callable_name);
             } elseif (preg_match('/^#exp\((.*?)\)$/', $condition, $cc)) { // exp 表达式
                 $condition = str_replace('$field', $value, $cc[1]);
                 unset($cc);
@@ -234,15 +236,18 @@ class Model
 
             // 计算搜索值
             $exp = $value;
-            if (function_exists($filter['exp'])) {
-                $exp = $filter['exp']($value);
+            if (is_callable($filter['exp'], false, $callable_name)) {
+                $exp = $callable_name($value);
+                unset($callable_name);
             } elseif (preg_match('/^#exp\((.*?)\)$/', $filter['exp'], $ee)) { // exp 表达式
                 $exp = str_replace('$field', $exp, $ee[1]);
                 unset($ee);
                 eval("\$exp = $exp;");
             } elseif ($filter['exp'] instanceof closure) {    // 闭包函数
+                echo 'closure';
                 $exp = $filter['exp']($key, $filter['field'], $exp);
             }
+
             // 赋值
             if ($filter['op']) {
                 $where[ $filter['field'].'['.$filter['op'].']' ] = $exp;
@@ -312,17 +317,26 @@ class Model
         }
         if (empty($arr['field']))
             $arr['field'] = $key;
+
         if (!isset($arr['default']))
             $arr['default'] = '';
+
         if (!isset($arr['filter']))
             $arr['filter'] = '';
+
         if (!isset($arr['condition']))
             $arr['condition'] = '';
+
         if (!isset($arr['op']) || !in_array($arr['op'], self::$allowOps)) {
             $arr['op'] = '';
         }
-        if (!isset($arr['exp']))
+
+        if (!isset($arr['exp'])) {
             $arr['exp'] = '';
+            if (key_exists($arr['op'], self::$allowOpExpMapping)) {
+                $arr['exp'] = self::$allowOpExpMapping[ $arr['op'] ];
+            }
+        }
 
         return [$key, $arr];
     }
