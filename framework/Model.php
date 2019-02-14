@@ -12,6 +12,7 @@ use fw\exception\RuntimeException;
 use Medoo\Medoo;
 use function defined;
 use function explode;
+use function floor;
 use function function_exists;
 use function in_array;
 use function is_array;
@@ -23,6 +24,7 @@ use function key_exists;
 use function method_exists;
 use function preg_match;
 use function str_replace;
+use function strtoupper;
 
 /**
  * Class Model
@@ -47,9 +49,14 @@ class Model
     // 表名
     const TABLE = '';
 
-    private $dataListSearchFields = [
+    // 自动列表每页最大拉取条目数
+    protected $maxPageItemNum = 50;
+    // 自动列表默认拉取条目数
+    protected $defaultPageItemNum = 20;
+
+    private $exampleSearchFields = [
         // get 字段
-        'example'    => [
+        'key'        => [
             // 数据库映射字段 缺省为 get 字段
             'field'     => '',
             // 默认 value 值：没有获取到get值时，取default值；缺省为空
@@ -75,14 +82,14 @@ class Model
              */
             'exp'       => '',
         ],
-        'cat_id' => [
+        'cat_id'     => [
             'default'   => -1,
             'condition' => '#exp($field >= 0)',
             'op'        => '=',
             'exp'       => '$field',
         ],
         'is_checked' => 'number',   // 匹配数字，同cat_id
-        'status' => [
+        'status'     => [
             'default'   => -1,
             'filter'    => 'intval',
             'condition' => '#exp(in_array($field,[0,1]))',
@@ -90,10 +97,11 @@ class Model
             'exp'       => '$field',
         ],
         'id',       //全部默认
-        'name' => 'like',   //like 匹配
+        'name'       => 'like',   //like 匹配
     ];
 
-    public static $allowOpExpMapping = [
+    // 自动列表 搜索符 <=> 搜索值处理函数 映射
+    private static $allowOpExpMapping = [
         '~',
         '>',
         '>=',
@@ -104,6 +112,7 @@ class Model
         '<>' => __CLASS__.'::expToArray',
     ];
 
+    // 自动列表 允许的搜索符
     private static $allowOps = [
         '~',
         '>',
@@ -115,6 +124,14 @@ class Model
         '<>',
     ];
 
+    /**
+     * 转化成数组
+     * @param string|array $v
+     * @param string $delimiter
+     * @return array
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
+     * @time 2019-02-14
+     */
     private static function expToArray($v, $delimiter = ',')
     {
         if (is_array($v)) {
@@ -122,7 +139,7 @@ class Model
         } elseif (is_string($v)) {
             return explode($delimiter, $v);
         } else {
-            return null;
+            return [];
         }
     }
 
@@ -194,19 +211,31 @@ class Model
         }
     }
 
-    public function autoFillWhere($filters)
+    /**
+     * @param array $searchFields 搜索条件
+     * @param array $sortFields 需要排序的字段
+     *              ['id','time' => 'created_at','id_a' => ['post.id' => 'DESC'],]
+     * @param null|false|int|array $pageLimit 分页限制
+     *          false:不限制分页 (慎用)
+     *          int:忽略传入的每页大小 值直接使用 int 值
+     *          ['max','default']: 使用参数判断传入值是否符合要求，符合使用传入值，不符合使用默认值
+     * @return array
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
+     * @time 2019-02-14
+     */
+    public function autoFillWhere($searchFields = [], $sortFields = [], $pageLimit = null)
     {
         $where = [];
-        $search = json_decode(Container::getRequest()->get('search','{}'),true);
-
-        foreach ($filters as $k => $filter) {
+        // 处理搜索条件
+        $searchData = json_decode(Container::getRequest()->get('search', '{}'), true);
+        foreach ($searchFields as $k => $filter) {
             $r = $this->completeFilter($k, $filter);
             if (!$r) {
                 continue;
             }
             list($key, $filter) = $r;
-            if (key_exists($key, $search)) {
-                $value = $search[ $key ];
+            if (key_exists($key, $searchData)) {
+                $value = $searchData[ $key ];
             } else {
                 $value = $filter['default'];
             }
@@ -255,13 +284,78 @@ class Model
                 $where[ $filter['field'] ] = $exp;
             }
         }
+        // 处理排序
+        /**
+         * @var $sortData ['id' => 'desc','time' => null]
+         */
+        $sortData = json_decode(Container::getRequest()->get('sort', '{}'), true);
+        $sort     = [];
+        foreach ($sortData as $k => $item) {
+            if (null === $item) {
+                if (key_exists($k, $sortFields)) {
+                    $sort[] = $sortFields[ $k ];
+                } elseif (in_array($k, $sortFields)) {
+                    $sort = $k;
+                }
+            } else {
+                $order = 'DESC';
+                if ('ASC' === strtoupper($item) || false === $item || -1 == $item) {
+                    $order = 'ASC';
+                }
+                if (key_exists($k, $sortFields)) {
+                    $v = $sortFields[ $k ];
+                    if (is_string($v)) {
+                        $sort[] = [$v => $order];
+                    }
+                } elseif (in_array($k, $sortFields)) {
+                    $sort[] = [$k => $order];
+                }
+            }
+        }
+        $where['ORDER'] = $sort;
+        // 处理分页
+        if (false !== $pageLimit) {
+            /**
+             * @var $pageData ['p','num']
+             */
+            $pageData = json_decode(Container::getRequest()->get('page', '{}'), true);
+            $p        = 1;
+            if (isset($pageData['p']) && is_numeric($pageData['p']) && $pageData['p'] > 0) {
+                $p = floor($pageData['p']);
+            }
 
-        //        $page = Container::getRequest()->get('page');
-        //        $order = Container::getRequest()->get('order');
+            if (is_numeric($pageLimit)) {     // 直接传入每页数量
+                $limit = $pageLimit;
+            } else {
+                if (is_array($pageLimit)) {   // 传入限制
+                    if (key_exists('max', $pageLimit)) {
+                        $this->maxPageItemNum = $pageLimit['max'];
+                    }
+                    if (key_exists('default', $pageLimit)) {
+                        $this->defaultPageItemNum = $pageLimit['default'];
+                    }
+                }
+                $limit = $this->defaultPageItemNum;
 
+                if (isset($pageData['num']) &&
+                    is_numeric($pageData['num']) &&
+                    $pageData['num'] <= $this->maxPageItemNum) {
+                    $limit = $pageData['num'];
+                }
+            }
+            $where['LIMIT'] = [($p - 1) * $limit, $limit];
+        }
         return $where;
     }
 
+    /**
+     * 赋值 searchField
+     * @param $k
+     * @param $v
+     * @return array
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
+     * @time 2019-02-14
+     */
     private function completeFilter($k, $v)
     {
         $key = '';
@@ -341,13 +435,34 @@ class Model
         return [$key, $arr];
     }
 
-
-    public function autoDataList($cols, $filters)
+    /**
+     * 自动列表
+     * @param array $cols 字段
+     * @param array $searchFields
+     * @param array $sortFields
+     * @param null $pageLimit
+     * @param  false|string|string $count 统计
+     * @return array
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
+     * @time 2019-02-14
+     */
+    public function autoDataList($cols, $searchFields = [], $sortFields = [], $pageLimit = null, $count = '')
     {
-        $where = $this->autoFillWhere($filters);
+        $where = $this->autoFillWhere($searchFields = [], $sortFields = [], $pageLimit = null);
         $list  = $this->select($cols, $where);
+        $ret   = ['list' => $list];
+        if (false !== $count) {
+            $cWhere = $where;
+            if (key_exists('ORDER', $cWhere)) {
+                unset($cWhere['ORDER']);
+            }
+            if (key_exists('LIMIT', $cWhere)) {
+                unset($cWhere['LIMIT']);
+            }
+            $ret['count'] = $this->count($count, $cWhere);
+        }
 
-        return $list;
+        return $ret;
     }
 
     /**
