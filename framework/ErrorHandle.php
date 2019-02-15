@@ -10,6 +10,7 @@ namespace fw;
 
 
 use Exception;
+use fw\exception\ResponseException;
 use function json_encode;
 
 class ErrorHandle
@@ -43,21 +44,25 @@ class ErrorHandle
      */
     public static function appException($e)
     {
-        Container::getLogger()->error('fatal exception',
-                                      [
-                                          'msg'   => $e->getMessage(),
-                                          'code'  => $e->getCode(),
-                                          'file'  => $e->getFile(),
-                                          'line'  => $e->getLine(),
-                                          'trace' => $e->getTrace(),
-                                      ]);
-        $res = new \Yaf\Response\Http();
-        $res->setBody(json_encode([
-                                      'code'  => 0,
-                                      'msg'   => 'sys error',
-                                      'error' => $e->getMessage(),
-                                  ]));
-        $res->response();
+        if ($e instanceof ResponseException) {
+            Container::getResponse()->response();
+        } else {
+            Container::getLogger()->error('fatal exception',
+                                          [
+                                              'msg'   => $e->getMessage(),
+                                              'code'  => $e->getCode(),
+                                              'file'  => $e->getFile(),
+                                              'line'  => $e->getLine(),
+                                              'trace' => $e->getTrace(),
+                                          ]);
+            $res = new \Yaf\Response\Http();
+            $res->setBody(json_encode([
+                                          'code'  => 0,
+                                          'msg'   => 'sys error',
+                                          'error' => $e->getMessage(),
+                                      ]));
+            $res->response();
+        }
     }
 
 

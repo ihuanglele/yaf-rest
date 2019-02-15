@@ -234,6 +234,7 @@ class Model
                 continue;
             }
             list($key, $filter) = $r;
+
             if (key_exists($key, $searchData)) {
                 $value = $searchData[ $key ];
             } else {
@@ -312,7 +313,7 @@ class Model
                 }
             }
         }
-        $where['ORDER'] = $sort;
+        //        $where['ORDER'] = $sort;
         // 处理分页
         if (false !== $pageLimit) {
             /**
@@ -437,7 +438,7 @@ class Model
 
     /**
      * 自动列表
-     * @param array $cols 字段
+     * @param array|string $cols 字段
      * @param array $searchFields
      * @param array $sortFields
      * @param null $pageLimit
@@ -446,11 +447,12 @@ class Model
      * @author ihuanglele<ihuanglele@yousuowei.cn>
      * @time 2019-02-14
      */
-    public function autoDataList($cols, $searchFields = [], $sortFields = [], $pageLimit = null, $count = '')
+    public function autoDataList($cols = '*', $searchFields = [], $sortFields = [], $pageLimit = null, $count = '')
     {
-        $where = $this->autoFillWhere($searchFields = [], $sortFields = [], $pageLimit = null);
-        $list  = $this->select($cols, $where);
-        $ret   = ['list' => $list];
+        $where        = $this->autoFillWhere($searchFields, $sortFields, $pageLimit);
+        $ret['list']  = $this->select($cols, $where);
+        $ret['where'] = $where;
+        $ret['cols']  = $cols;
         if (false !== $count) {
             $cWhere = $where;
             if (key_exists('ORDER', $cWhere)) {

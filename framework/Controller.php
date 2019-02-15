@@ -32,6 +32,7 @@ class Controller extends \Yaf\Controller_Abstract
         $this->getResponse()->setHeader('X-Powered-By', 'YafRest');
         $this->getResponse()->setHeader('Access-Control-Allow-Origin', '*');
         $this->getResponse()->setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST,HEAD,DELETE');
+        $this->getResponse()->setHeader('Access-Control-Allow-Headers', 'Content-Type,Token,X-Agent,Accept');
         $this->getResponse()->setHeader('Access-Control-Allow-Credentials', 'true');
     }
 
@@ -70,6 +71,7 @@ class Controller extends \Yaf\Controller_Abstract
     protected function success($data)
     {
         $this->getResponse()->setBody(json_encode(['code' => 200, 'data' => $data], JSON_UNESCAPED_UNICODE));
+        //        throw new ResponseException();
     }
 
     /**
@@ -82,6 +84,7 @@ class Controller extends \Yaf\Controller_Abstract
     protected function error($msg, $code = 0)
     {
         $this->getResponse()->setBody(json_encode(['code' => $code, 'msg' => $msg], JSON_UNESCAPED_UNICODE));
+        //        throw new ResponseException();
     }
 
 }

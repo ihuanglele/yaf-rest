@@ -12,5 +12,4 @@ namespace fw\exception;
 abstract class ErrorHandleException extends \Yaf\Exception
 {
 
-
 }
