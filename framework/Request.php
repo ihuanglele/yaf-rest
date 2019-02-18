@@ -14,6 +14,7 @@ namespace fw;
 
 use function explode;
 use function implode;
+use function is_int;
 use function key_exists;
 use function ltrim;
 use function parse_str;
@@ -109,6 +110,35 @@ class Request extends \Yaf\Request\Http
                 return $default;
             }
         }
+    }
+
+    /**
+     * 批量获取 get post 参数
+     * @param array $fields ['status' => 1, 'name', 'tel' => null] 当值为 null 时 如果没有获取参数 则不返回值
+     * @param string $methods get|post
+     * @return array
+     * @author ihuanglele<ihuanglele@yousuowei.cn>
+     * @time 2019-02-18
+     */
+    public function only($fields = [], $methods = 'get')
+    {
+        if ('get' !== $methods || 'post' !== 'post') {
+            return [];
+        }
+        $data = [];
+        foreach ($fields as $k => $v) {
+            if (is_int($k)) {
+                $k = $v;
+                $v = '';
+            }
+            $value = $this->$methods($k, $v);
+            if (null === $v && null === $value) {
+                continue;
+            }
+            $data[ $k ] = $value;
+        }
+
+        return $data;
     }
 
 }
