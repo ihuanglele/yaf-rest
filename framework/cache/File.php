@@ -27,7 +27,7 @@ class File extends Cache
 
     public function __construct()
     {
-        $this->path = APPLICATION_PATH.DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR;
+        $this->path = ROOT_PATH.DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.'cache'.DIRECTORY_SEPARATOR;
     }
 
     public function get($key)

@@ -26,7 +26,7 @@ class File extends Logger
 
     public function __construct()
     {
-        $this->path = APPLICATION_PATH.DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.date('Y-m-d').'.log';
+        $this->path = ROOT_PATH.DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.date('Y-m-d').'.log';
     }
 
     /**

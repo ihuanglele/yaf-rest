@@ -479,7 +479,7 @@ class Model
         } else {
             $name = str_replace('\\', '/', static::class);
 
-            return strtolower(preg_replace('/([a-z])([A-Z])/', "$1".' '."$2", basename($name)));
+            return strtolower(preg_replace('/([a-z])([A-Z])/', "$1_$2", basename($name)));
         }
     }
 

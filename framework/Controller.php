@@ -10,6 +10,7 @@ namespace fw;
 
 use function json_encode;
 use const JSON_UNESCAPED_UNICODE;
+use function method_exists;
 
 class Controller extends \Yaf\Controller_Abstract
 {
@@ -27,13 +28,15 @@ class Controller extends \Yaf\Controller_Abstract
     public function init()
     {
         // add Header
-        $this->getResponse()->setHeader('Content-Type', 'application/json;charset=utf-8');
-        $this->getResponse()->setHeader('Server', 'Apache/1.8.0');
-        $this->getResponse()->setHeader('X-Powered-By', 'YafRest');
-        $this->getResponse()->setHeader('Access-Control-Allow-Origin', '*');
-        $this->getResponse()->setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST,HEAD,DELETE');
-        $this->getResponse()->setHeader('Access-Control-Allow-Headers', 'Content-Type,Token,X-Agent,Accept');
-        $this->getResponse()->setHeader('Access-Control-Allow-Credentials', 'true');
+        if(method_exists($this->getResponse(),'setHeader')){
+            $this->getResponse()->setHeader('Content-Type', 'application/json;charset=utf-8');
+            $this->getResponse()->setHeader('Server', 'Apache/1.8.0');
+            $this->getResponse()->setHeader('X-Powered-By', 'YafRest');
+            $this->getResponse()->setHeader('Access-Control-Allow-Origin', '*');
+            $this->getResponse()->setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,POST,HEAD,DELETE');
+            $this->getResponse()->setHeader('Access-Control-Allow-Headers', 'Content-Type,Token,X-Agent,Accept');
+            $this->getResponse()->setHeader('Access-Control-Allow-Credentials', 'true');
+        }
     }
 
     /**
@@ -46,6 +49,9 @@ class Controller extends \Yaf\Controller_Abstract
      */
     protected function get($name = null, $default = null)
     {
+        if(CLI){
+            return null;
+        }
         return $this->getRequest()->get($name, $default);
     }
 
@@ -59,6 +65,9 @@ class Controller extends \Yaf\Controller_Abstract
      */
     protected function post($name = null, $default = null)
     {
+        if(CLI){
+            return null;
+        }
         return $this->getRequest()->post($name, $default);
     }
 
