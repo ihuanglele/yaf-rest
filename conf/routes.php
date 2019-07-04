@@ -25,5 +25,17 @@ routes.supervar.varname=r
  */
 
 return [
-    ['type' => '','']
+    'search' => [
+        'type' => 'regex',
+        'match' => '#^/search/([^/]*)/([^/]*)#',
+        'route' => [
+            'module' => 'Index',
+            'controller' => 'Index',
+            'action' => 'search',
+        ],
+        'map' => [
+            1 => 'key',
+            2 => 'p',
+        ]
+    ],
 ];

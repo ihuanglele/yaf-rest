@@ -2,9 +2,11 @@
 
 use fw\AppPlugin;
 use fw\Cache;
+use fw\CliRequest;
 use fw\Container;
 use fw\Logger;
 use fw\Request;
+use fw\SysConst;
 
 /**
  * Created by PhpStorm.
@@ -17,7 +19,15 @@ class Bootstrap extends \Yaf\Bootstrap_Abstract {
 
     public function _initApp()
     {
-        Container::getApp()->getDispatcher()->setRequest(new Request());
+        if (PHP_SAPI == 'cli') {
+            define('CLI', true);
+
+            list($controller, $action) = explode('/', $_SERVER['argv'][1]);
+            Container::getApp()->getDispatcher()->setRequest(new \Yaf\Request\Simple('cli', 'Script', $controller, $action));
+        } else {
+            define('CLI', false);
+            Container::getApp()->getDispatcher()->setRequest(new Request());
+        }
         $t_start = microtime(true);
         $log     = Container::getConfig('log', 'fw\\logger\\File');
         $logger  = Logger::setLogger($log);
@@ -55,7 +65,7 @@ class Bootstrap extends \Yaf\Bootstrap_Abstract {
      */
     public function _initConfig()
     {
-        $files = Container::getConfig('configurations', []);
+        $files = Container::getConfig(SysConst::CONFIGURATIONS_KEY, []);
         if (empty($files)) {
             return;
         }
@@ -65,14 +75,14 @@ class Bootstrap extends \Yaf\Bootstrap_Abstract {
         $arr = [];
         foreach ($files as $file) {
             // 判断文件是否存在
-            if (is_file(APPLICATION_PATH.'/conf/'.$file)) {
+            if (is_file(CONF_PATH . DS . $file)) {
                 // 判断文件类型
                 $type = substr($file, -3);
                 $t    = [];
                 if ('php' === $type) {
-                    $t = include(APPLICATION_PATH.'/conf/'.$file);
+                    $t = include(CONF_PATH . DS . $file);
                 } elseif ('ini' === $type) {
-                    $t = parse_ini_file(APPLICATION_PATH.'/conf/'.$file, true);
+                    $t = parse_ini_file(CONF_PATH . DS . $file, true);
                 }
                 if (is_array($t)) {
                     $key         = substr($file, 0, -4);
@@ -81,6 +91,33 @@ class Bootstrap extends \Yaf\Bootstrap_Abstract {
             }
         }
         Container::set(Container::SYSCONF, $arr);
+    }
+
+    public function _initAppBootstrap(\Yaf\Dispatcher $dispatcher)
+    {
+        if (file_exists(APP_PATH . 'AppBootstrap.php')) {
+            include APP_PATH . 'AppBootstrap.php';
+            if (class_exists('\\AppBootstrap')) {
+                $appBootstrap = new \AppBootstrap();
+                $appReflection = new ReflectionClass('\\AppBootstrap');
+                $methods = $appReflection->getMethods(ReflectionMethod::IS_PUBLIC);
+                foreach ($methods as $method) {
+                    $name = $method->getName();
+                    if (0 === strpos($name, '_init')) {
+                        $appBootstrap->$name($dispatcher);
+                    }
+                }
+            }
+
+        }
+    }
+
+    // 注册自定义路由
+    public function _initRouter(\Yaf\Dispatcher $dispatcher)
+    {
+        if (key_exists('routes', Container::get(Container::SYSCONF))) {
+            $dispatcher->getRouter()->addConfig(Container::get(Container::SYSCONF)['routes']);
+        }
     }
 
     /**
