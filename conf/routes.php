@@ -31,7 +31,7 @@ return [
         'route' => [
             'module' => 'Index',
             'controller' => 'Index',
-            'action' => 's',
+            'action' => 'search',
         ],
         'map' => [
             1 => 'key',
