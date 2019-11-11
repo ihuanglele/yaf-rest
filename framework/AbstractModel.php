@@ -44,7 +44,7 @@ use function strtoupper;
  * @method Medoo min($join = null, $column = null, $where = null)
  * @method Medoo sum($join = null, $column = null, $where = null)
  */
-class Model
+abstract class AbstractModel
 {
     // 表名
     const TABLE = '';
